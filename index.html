@@ -59,6 +59,8 @@
             transition: all 0.3s ease;
             box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
             font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
         }
         .button:hover {
             background-color: #e0e0e0;
@@ -123,7 +125,7 @@
             <button class="button" id="editButton">Edit</button>
             <button class="button" id="exportButton">Exportar</button>
             <button class="button" id="saveButton">Salvar</button>
-            <button class="button" id="newButton">Novo</button>
+            <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
@@ -133,7 +135,6 @@
     const saveButton = document.getElementById('saveButton');
     const exportButton = document.getElementById('exportButton');
     const editButton = document.getElementById('editButton');
-    const newButton = document.getElementById('newButton');
     const contentArea = document.getElementById('contentArea');
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
@@ -161,10 +162,6 @@
     }
 
     modeToggle.addEventListener('click', toggleDarkMode);
-
-    newButton.addEventListener('click', () => {
-        window.open('https://docs.pyxelworld.com/', '_blank');
-    });
 
     saveButton.addEventListener('click', () => {
         const title = documentTitle.value;
