@@ -209,7 +209,12 @@
                 }
             }
             document.body.removeChild(tempDiv);
-            doc.save(`${title || 'documento'}.pdf`);
+            
+            // Convert the document to a Blob and open it in a new tab
+            const pdfBlob = doc.output('blob');
+            const blobUrl = URL.createObjectURL(pdfBlob);
+            window.open(blobUrl, '_blank');
+            
             exportButton.textContent = 'Exportado!';
             setTimeout(() => {
                 exportButton.textContent = 'Exportar';
