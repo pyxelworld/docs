@@ -120,7 +120,7 @@
 <body>
 <div class="editor-container">
     <div class="title-bar">
-        <input type="text" class="title-display" id="documentTitle" value="Nome do Documento" />
+        <input type="text" class="title-display" id="documentTitle" value="Título do Documento" />
         <div>
             <button class="button" id="editButton">Edit</button>
             <button class="button" id="exportButton">Exportar</button>
@@ -254,10 +254,11 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        const title = params.title || 'Nome do Documento';
-        const content = params.content ? decodeURIComponent(params.content) : 'Escreva conteúdo markdown aqui';
+        const title = params.title || 'Título do Documento';
+        const content = params.content ? decodeURIComponent(params.content) : '';
         documentTitle.value = title;
         markdownContent = normalizeContent(content);
+        isEditMode = !markdownContent.trim(); // Open in edit mode if content is empty
         updateUIForEditMode();
     }
 
