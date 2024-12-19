@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Docs</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Garet:wght@300;400;700&display=swap');
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Garet', sans-serif;
+            height: 100%;
+            background-color: #e0e0e0;
+        }
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .title-bar {
+            background-color: #e0e0e0;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+        .title-display {
+            font-size: 20px;
+            font-weight: bold;
+            flex-grow: 1;
+            margin-right: 10px;
+            color: #333;
+            border: none;
+            background: none;
+            outline: none;
+        }
+        .button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .button:hover {
+            background-color: #d0d0d0;
+        }
+        .button:active {
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .content-area {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        [contenteditable=true]:empty:before {
+            content: attr(placeholder);
+            color: rgba(0,0,0,0.5);
+            font-style: italic;
+        }
+        @media (max-width: 600px) {
+            .title-bar {
+                flex-wrap: wrap;
+            }
+            .title-display {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="editor-container">
+    <div class="title-bar">
+        <input type="text" class="title-display" id="documentTitle" value="Nome do Documento" />
+        <button class="button" id="editButton">Edit</button>
+        <button class="button" id="exportButton">Exportar</button>
+        <button class="button" id="saveButton">Salvar</button>
+    </div>
+    <div class="content-area" contenteditable="false" placeholder="Escreva aqui..." id="contentArea"></div>
+</div>
+<script>
+    const saveButton = document.getElementById('saveButton');
+    const exportButton = document.getElementById('exportButton');
+    const editButton = document.getElementById('editButton');
+    const contentArea = document.getElementById('contentArea');
+    const documentTitle = document.getElementById('documentTitle');
+    let isEditMode = false;
+    let markdownContent = '';
+
+    function normalizeContent(content) {
+        return content.replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function updateUIForEditMode() {
+        editButton.textContent = isEditMode ? 'View' : 'Edit';
+        contentArea.contentEditable = isEditMode;
+        if (isEditMode) {
+            contentArea.innerText = normalizeContent(markdownContent);
+        } else {
+            contentArea.innerHTML = markdownContent.trim() ? marked.parse(markdownContent) : '';
+        }
+    }
+
+    saveButton.addEventListener('click', () => {
+        const title = documentTitle.value;
+        const fullContent = `**${title}**\n\n${markdownContent}`;
+        navigator.clipboard.writeText(fullContent).then(() => {
+            saveButton.textContent = 'Cole no Magic para salvar';
+            setTimeout(() => {
+                saveButton.textContent = 'Salvar';
+            }, 3000);
+        }).catch(error => {
+            console.error('Erro ao copiar para a área de transferência:', error);
+        });
+    });
+
+    exportButton.addEventListener('click', async () => {
+        try {
+            exportButton.textContent = 'Baixando PDF...';
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'cm', format: 'a4' });
+            const margin = 0.8;
+            const pageWidth = 21;
+            const pageHeight = 29.7;
+            const contentWidth = pageWidth - 2 * margin;
+            const contentHeight = pageHeight - 2 * margin;
+            const title = documentTitle.value;
+            const content = marked.parse(markdownContent);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = `<h1 style="text-align: center;">${title}</h1>${content}`;
+            tempDiv.style.width = `${contentWidth}cm`;
+            tempDiv.style.fontFamily = 'Garet, sans-serif';
+            tempDiv.style.fontSize = '12pt';
+            document.body.appendChild(tempDiv);
+            const totalHeight = tempDiv.offsetHeight;
+            let position = 0;
+            while (position < totalHeight) {
+                const canvas = await html2canvas(tempDiv, {
+                    scale: 2,
+                    width: contentWidth * 37.795275591,
+                    height: contentHeight * 37.795275591,
+                    y: position
+                });
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
+                position += contentHeight * 37.795275591;
+                if (position < totalHeight) {
+                    doc.addPage();
+                }
+            }
+            document.body.removeChild(tempDiv);
+            doc.save(`${title || 'documento'}.pdf`);
+            exportButton.textContent = 'Exportado!';
+            setTimeout(() => {
+                exportButton.textContent = 'Exportar';
+            }, 3000);
+        } catch (error) {
+            console.error('Erro ao exportar PDF:', error);
+            exportButton.textContent = 'Erro!';
+            setTimeout(() => {
+                exportButton.textContent = 'Exportar';
+            }, 3000);
+        }
+    });
+
+    editButton.addEventListener('click', () => {
+        isEditMode = !isEditMode;
+        updateUIForEditMode();
+    });
+
+    contentArea.addEventListener('input', () => {
+        if (isEditMode) {
+            markdownContent = normalizeContent(contentArea.innerText);
+        }
+    });
+
+    function getQueryParams() {
+        const params = {};
+        window.location.search.substring(1).split('&').forEach(param => {
+            const [key, value] = param.split('=');
+            params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+        });
+        return params;
+    }
+
+    function initializeContentFromURL() {
+        const params = getQueryParams();
+        const title = params.title || 'Nome do Documento';
+        const content = params.content || 'Escreva conteúdo markdown aqui';
+        documentTitle.value = title;
+        markdownContent = normalizeContent(content);
+        updateUIForEditMode();
+    }
+
+    initializeContentFromURL();
+</script>
+</body>
+</html>
