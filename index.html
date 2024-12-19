@@ -185,10 +185,12 @@
             const title = documentTitle.value;
             const content = marked.parse(markdownContent);
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `<h1 style="text-align: center;">${title}</h1>${content}`;
+            tempDiv.innerHTML = `<h1 style="text-align: center; color: black;">${title}</h1>${content}`;
             tempDiv.style.width = `${contentWidth}cm`;
             tempDiv.style.fontFamily = 'Garet, sans-serif';
             tempDiv.style.fontSize = '12pt';
+            tempDiv.style.color = 'black'; // Define o texto como preto
+            tempDiv.style.backgroundColor = 'white'; // Define o fundo como branco
             document.body.appendChild(tempDiv);
             const totalHeight = tempDiv.offsetHeight;
             let position = 0;
