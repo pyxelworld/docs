@@ -254,8 +254,8 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        const title = params.title || 'Título do Documento';
-        const content = params.content ? decodeURIComponent(params.content.replace(/\+/g, ' ')) : '';
+        const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
+        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
         documentTitle.value = title;
         markdownContent = normalizeContent(content);
         isEditMode = !markdownContent.trim(); // Open in edit mode if content is empty
