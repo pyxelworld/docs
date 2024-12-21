@@ -164,6 +164,7 @@
                     <div id="savedDocuments"></div>
                 </div>
             </div>
+            <button class="button" id="magicButton">Magic</button>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
@@ -172,7 +173,6 @@
     <input type="file" id="fileInput" style="display:none;" accept=".md"/>
 </div>
 <script>
-    const saveButton = document.getElementById('saveButton');
     const saveLinkButton = document.getElementById('saveLinkButton');
     const saveMenu = document.getElementById('saveMenu');
     const saveNewButton = document.getElementById('saveNew');
@@ -187,6 +187,7 @@
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
     const fileInput = document.getElementById('fileInput');
+    const magicButton = document.getElementById('magicButton');
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
@@ -249,6 +250,20 @@
             }, 3000);
             saveDocumentToLocalStorage(title, link);
             updateSavedDocumentsMenu();
+        }).catch(error => {
+            console.error('Erro ao copiar o link:', error);
+        });
+    });
+
+    magicButton.addEventListener('click', () => {
+        const title = encodeURIComponent(documentTitle.value);
+        const content = encodeURIComponent(markdownContent);
+        const link = `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
+        navigator.clipboard.writeText(link).then(() => {
+            magicButton.textContent = 'Link para documento copiado';
+            setTimeout(() => {
+                magicButton.textContent = 'Magic';
+            }, 3000);
         }).catch(error => {
             console.error('Erro ao copiar o link:', error);
         });
