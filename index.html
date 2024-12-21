@@ -127,6 +127,9 @@
             cursor: pointer;
             margin-left: 15px;
         }
+        .dark-mode [contenteditable=true]:empty:before {
+            color: rgba(255, 255, 255, 0.5);
+        }
         @media (max-width: 600px) {
             .title-bar {
                 flex-wrap: wrap;
@@ -148,7 +151,8 @@
         <input type="text" class="title-display" id="documentTitle" value="Título do Documento" />
         <div>
             <button class="button" id="editButton">Edit</button>
-            <div class="button" id="exportButton">Exportar
+            <button class="button" id="importButton">Importar</button>
+            <div class="button" id="exportButton" style="display: none;">Exportar
                 <div class="dropdown-menu" id="exportMenu">
                     <button id="exportPDF">PDF</button>
                     <button id="exportMD">MD</button>
@@ -165,6 +169,7 @@
 <script>
     const saveButton = document.getElementById('saveButton');
     const exportButton = document.getElementById('exportButton');
+    const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
     const exportPDFButton = document.getElementById('exportPDF');
     const exportMDButton = document.getElementById('exportMD');
@@ -211,11 +216,17 @@
         });
     });
 
+    importButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
     exportButton.addEventListener('click', () => {
-        if (markdownContent.trim()) {
-            exportMenu.style.display = 'block';
-        } else {
-            fileInput.click();
+        exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!exportButton.contains(event.target)) {
+            exportMenu.style.display = 'none';
         }
     });
 
@@ -236,9 +247,9 @@
             tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 8pt;">${title}</h1>${content}`;
             tempDiv.style.width = `${contentWidth}cm`;
             tempDiv.style.fontFamily = 'Garet, sans-serif';
-            tempDiv.style.fontSize = '8pt'; // Tamanho da fonte reduzido
-            tempDiv.style.color = 'black'; // Define o texto como preto
-            tempDiv.style.backgroundColor = 'white'; // Define o fundo como branco
+            tempDiv.style.fontSize = '8pt';
+            tempDiv.style.color = 'black';
+            tempDiv.style.backgroundColor = 'white';
             document.body.appendChild(tempDiv);
             const totalHeight = tempDiv.offsetHeight;
             let position = 0;
@@ -258,20 +269,19 @@
             }
             document.body.removeChild(tempDiv);
             
-            // Convert the document to a Blob and open it in a new tab
             const pdfBlob = doc.output('blob');
             const blobUrl = URL.createObjectURL(pdfBlob);
             window.open(blobUrl, '_blank');
             
             exportButton.textContent = 'Exportado!';
             setTimeout(() => {
-                exportButton.textContent = 'Exportar';
+                updateExportButtonVisibility();
             }, 3000);
         } catch (error) {
             console.error('Erro ao exportar PDF:', error);
             exportButton.textContent = 'Erro!';
             setTimeout(() => {
-                exportButton.textContent = 'Exportar';
+                updateExportButtonVisibility();
             }, 3000);
         }
     });
@@ -299,6 +309,7 @@
     contentArea.addEventListener('input', () => {
         if (isEditMode) {
             markdownContent = normalizeContent(contentArea.innerText);
+            updateExportButtonVisibility();
         }
     });
 
@@ -309,17 +320,22 @@
             reader.onload = (e) => {
                 const content = e.target.result;
                 if (content.trim()) {
-                    markdownContent = content;
-                    documentTitle.value = content.split('\n')[0].replace(/^\*\*(.*)\*\*$/, '$1') || 'Título do Documento';
+                    const lines = content.split('\n');
+                    const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
+                    if (titleLine) {
+                        documentTitle.value = titleLine[1];
+                        markdownContent = lines.slice(1).join('\n').trim();
+                    } else {
+                        documentTitle.value = file.name.replace('.md', '');
+                        markdownContent = content;
+                    }
+                    isEditMode = false;
                     updateUIForEditMode();
-                    exportButton.textContent = 'Importado!';
-                    setTimeout(() => {
-                        exportButton.textContent = 'Exportar';
-                    }, 3000);
+                    updateExportButtonVisibility();
                 } else {
-                    exportButton.textContent = 'Documento vazio';
+                    importButton.textContent = 'Documento vazio';
                     setTimeout(() => {
-                        exportButton.textContent = 'Importar';
+                        updateExportButtonVisibility();
                     }, 3000);
                 }
             };
@@ -342,8 +358,19 @@
         const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
         documentTitle.value = title;
         markdownContent = normalizeContent(content);
-        isEditMode = !markdownContent.trim(); // Open in edit mode if content is empty
+        isEditMode = !markdownContent.trim();
         updateUIForEditMode();
+        updateExportButtonVisibility();
+    }
+
+    function updateExportButtonVisibility() {
+        if (markdownContent.trim()) {
+            importButton.style.display = 'none';
+            exportButton.style.display = 'inline-block';
+        } else {
+            importButton.style.display = 'inline-block';
+            exportButton.style.display = 'none';
+        }
     }
 
     initializeContentFromURL();
