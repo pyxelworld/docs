@@ -159,7 +159,11 @@
                 </div>
             </div>
             <button class="button" id="saveButton">Magic</button>
-            <button class="button" id="saveLinkButton">Salvar</button>
+            <div class="button" id="saveLinkButton">Salvar
+                <div class="dropdown-menu" id="linkHistoryMenu">
+                    <button id="saveNewLink">Salvar Novo Link</button>
+                </div>
+            </div>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
@@ -170,6 +174,8 @@
 <script>
     const saveButton = document.getElementById('saveButton');
     const saveLinkButton = document.getElementById('saveLinkButton');
+    const linkHistoryMenu = document.getElementById('linkHistoryMenu');
+    const saveNewLinkButton = document.getElementById('saveNewLink');
     const exportButton = document.getElementById('exportButton');
     const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
@@ -233,15 +239,47 @@
     });
 
     saveLinkButton.addEventListener('click', () => {
+        linkHistoryMenu.style.display = linkHistoryMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!saveLinkButton.contains(event.target)) {
+            linkHistoryMenu.style.display = 'none';
+        }
+        if (!exportButton.contains(event.target)) {
+            exportMenu.style.display = 'none';
+        }
+    });
+
+    saveNewLinkButton.addEventListener('click', () => {
         const title = encodeURIComponent(documentTitle.value);
         const content = encodeURIComponent(markdownContent);
         const link = `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
-        navigator.clipboard.writeText(link).then(() => {
-            window.location.href = link;
-        }).catch(error => {
-            console.error('Erro ao copiar o link:', error);
-        });
+        saveLinkToHistory(link);
+        window.location.href = link;
     });
+
+    function saveLinkToHistory(link) {
+        if (isLocalStorageAvailable()) {
+            let linkHistory = JSON.parse(localStorage.getItem('linkHistory')) || [];
+            linkHistory.push(link);
+            localStorage.setItem('linkHistory', JSON.stringify(linkHistory));
+            updateLinkHistoryMenu();
+        }
+    }
+
+    function updateLinkHistoryMenu() {
+        if (isLocalStorageAvailable()) {
+            let linkHistory = JSON.parse(localStorage.getItem('linkHistory')) || [];
+            linkHistoryMenu.innerHTML = '<button id="saveNewLink">Salvar Novo Link</button>';
+            linkHistory.forEach((link, index) => {
+                const linkButton = document.createElement('button');
+                linkButton.textContent = `Link ${index + 1}`;
+                linkButton.onclick = () => window.location.href = link;
+                linkHistoryMenu.appendChild(linkButton);
+            });
+        }
+    }
 
     importButton.addEventListener('click', () => {
         fileInput.click();
@@ -249,12 +287,6 @@
 
     exportButton.addEventListener('click', () => {
         exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!exportButton.contains(event.target)) {
-            exportMenu.style.display = 'none';
-        }
     });
 
     exportPDFButton.addEventListener('click', async () => {
@@ -406,6 +438,7 @@
 
     loadThemePreference();
     initializeContentFromURL();
+    updateLinkHistoryMenu();
 </script>
 </body>
 </html>
