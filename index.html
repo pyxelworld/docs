@@ -158,13 +158,8 @@
                     <button id="exportMD">MD</button>
                 </div>
             </div>
-            <div class="button" id="saveLinkButton">Salvar
-                <div class="dropdown-menu" id="saveMenu">
-                    <button id="saveNew">Novo</button>
-                    <div id="savedDocuments"></div>
-                </div>
-            </div>
-            <button class="button" id="magicButton">Magic</button>
+            <button class="button" id="saveButton">Magic</button>
+            <button class="button" id="saveLinkButton">Salvar</button>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
@@ -173,10 +168,8 @@
     <input type="file" id="fileInput" style="display:none;" accept=".md"/>
 </div>
 <script>
+    const saveButton = document.getElementById('saveButton');
     const saveLinkButton = document.getElementById('saveLinkButton');
-    const saveMenu = document.getElementById('saveMenu');
-    const saveNewButton = document.getElementById('saveNew');
-    const savedDocumentsDiv = document.getElementById('savedDocuments');
     const exportButton = document.getElementById('exportButton');
     const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
@@ -187,7 +180,6 @@
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
     const fileInput = document.getElementById('fileInput');
-    const magicButton = document.getElementById('magicButton');
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
@@ -227,68 +219,29 @@
 
     modeToggle.addEventListener('click', toggleDarkMode);
 
+    saveButton.addEventListener('click', () => {
+        const title = documentTitle.value;
+        const fullContent = `**${title}**\n\n${markdownContent}`;
+        navigator.clipboard.writeText(fullContent).then(() => {
+            saveButton.textContent = 'Cole no Magic para colaborar';
+            setTimeout(() => {
+                saveButton.textContent = 'Magic';
+            }, 3000);
+        }).catch(error => {
+            console.error('Erro ao copiar para a área de transferência:', error);
+        });
+    });
+
     saveLinkButton.addEventListener('click', () => {
-        saveMenu.style.display = saveMenu.style.display === 'block' ? 'none' : 'block';
-        updateSavedDocumentsMenu();
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!saveLinkButton.contains(event.target)) {
-            saveMenu.style.display = 'none';
-        }
-    });
-
-    saveNewButton.addEventListener('click', () => {
         const title = encodeURIComponent(documentTitle.value);
         const content = encodeURIComponent(markdownContent);
         const link = `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
         navigator.clipboard.writeText(link).then(() => {
-            saveNewButton.textContent = 'Link para documento copiado';
-            setTimeout(() => {
-                saveNewButton.textContent = 'Novo';
-                window.open(link, '_blank');
-            }, 3000);
-            saveDocumentToLocalStorage(title, link);
-            updateSavedDocumentsMenu();
+            window.location.href = link;
         }).catch(error => {
             console.error('Erro ao copiar o link:', error);
         });
     });
-
-    magicButton.addEventListener('click', () => {
-        const title = encodeURIComponent(documentTitle.value);
-        const content = encodeURIComponent(markdownContent);
-        const link = `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
-        navigator.clipboard.writeText(link).then(() => {
-            magicButton.textContent = 'Link para documento copiado';
-            setTimeout(() => {
-                magicButton.textContent = 'Magic';
-            }, 3000);
-        }).catch(error => {
-            console.error('Erro ao copiar o link:', error);
-        });
-    });
-
-    function saveDocumentToLocalStorage(title, link) {
-        if (!isLocalStorageAvailable()) return;
-        const documents = JSON.parse(localStorage.getItem('documents')) || [];
-        documents.push({ title: decodeURIComponent(title), link });
-        localStorage.setItem('documents', JSON.stringify(documents));
-        console.log('Documento salvo:', { title: decodeURIComponent(title), link });
-    }
-
-    function updateSavedDocumentsMenu() {
-        if (!isLocalStorageAvailable()) return;
-        const documents = JSON.parse(localStorage.getItem('documents')) || [];
-        savedDocumentsDiv.innerHTML = '';
-        documents.forEach(doc => {
-            const button = document.createElement('button');
-            button.textContent = doc.title;
-            button.onclick = () => window.open(doc.link, '_blank');
-            savedDocumentsDiv.appendChild(button);
-        });
-        console.log('Documentos carregados:', documents);
-    }
 
     importButton.addEventListener('click', () => {
         fileInput.click();
@@ -345,7 +298,7 @@
             
             const pdfBlob = doc.output('blob');
             const blobUrl = URL.createObjectURL(pdfBlob);
-            window.open(blobUrl, '_blank');
+            window.location.href = blobUrl;
             
             exportButton.textContent = 'Exportado!';
             setTimeout(() => {
