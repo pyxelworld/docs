@@ -61,12 +61,37 @@
             font-size: 14px;
             text-decoration: none;
             display: inline-block;
+            position: relative;
         }
         .button:hover {
             background-color: #e0e0e0;
         }
         .button:active {
             box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #f0f0f0;
+            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .dropdown-menu button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+        .dropdown-menu button:hover {
+            background-color: #e0e0e0;
         }
         .content-area {
             flex-grow: 1;
@@ -123,21 +148,31 @@
         <input type="text" class="title-display" id="documentTitle" value="Título do Documento" />
         <div>
             <button class="button" id="editButton">Edit</button>
-            <button class="button" id="exportButton">Exportar</button>
+            <div class="button" id="exportButton">Exportar
+                <div class="dropdown-menu" id="exportMenu">
+                    <button id="exportPDF">PDF</button>
+                    <button id="exportMD">MD</button>
+                </div>
+            </div>
             <button class="button" id="saveButton">Salvar</button>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
     <div class="content-area" contenteditable="false" placeholder="Escreva aqui..." id="contentArea"></div>
+    <input type="file" id="fileInput" style="display:none;" accept=".md"/>
 </div>
 <script>
     const saveButton = document.getElementById('saveButton');
     const exportButton = document.getElementById('exportButton');
+    const exportMenu = document.getElementById('exportMenu');
+    const exportPDFButton = document.getElementById('exportPDF');
+    const exportMDButton = document.getElementById('exportMD');
     const editButton = document.getElementById('editButton');
     const contentArea = document.getElementById('contentArea');
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
+    const fileInput = document.getElementById('fileInput');
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
@@ -176,7 +211,16 @@
         });
     });
 
-    exportButton.addEventListener('click', async () => {
+    exportButton.addEventListener('click', () => {
+        if (markdownContent.trim()) {
+            exportMenu.style.display = 'block';
+        } else {
+            fileInput.click();
+        }
+    });
+
+    exportPDFButton.addEventListener('click', async () => {
+        exportMenu.style.display = 'none';
         try {
             exportButton.textContent = 'Baixando PDF...';
             const { jsPDF } = window.jspdf;
@@ -186,13 +230,13 @@
             const pageHeight = 29.7;
             const contentWidth = pageWidth - 2 * margin;
             const contentHeight = pageHeight - 2 * margin;
-            const title = documentTitle.value;
+            const title = documentTitle.value || 'Título do Documento';
             const content = marked.parse(markdownContent);
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 10pt;">${title}</h1>${content}`;
+            tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 8pt;">${title}</h1>${content}`;
             tempDiv.style.width = `${contentWidth}cm`;
             tempDiv.style.fontFamily = 'Garet, sans-serif';
-            tempDiv.style.fontSize = '10pt'; // Tamanho da fonte reduzido
+            tempDiv.style.fontSize = '8pt'; // Tamanho da fonte reduzido
             tempDiv.style.color = 'black'; // Define o texto como preto
             tempDiv.style.backgroundColor = 'white'; // Define o fundo como branco
             document.body.appendChild(tempDiv);
@@ -232,6 +276,21 @@
         }
     });
 
+    exportMDButton.addEventListener('click', () => {
+        exportMenu.style.display = 'none';
+        const title = documentTitle.value || 'Título do Documento';
+        const fullContent = `**${title}**\n\n${markdownContent}`;
+        const blob = new Blob([fullContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
     editButton.addEventListener('click', () => {
         isEditMode = !isEditMode;
         updateUIForEditMode();
@@ -240,6 +299,31 @@
     contentArea.addEventListener('input', () => {
         if (isEditMode) {
             markdownContent = normalizeContent(contentArea.innerText);
+        }
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                if (content.trim()) {
+                    markdownContent = content;
+                    documentTitle.value = content.split('\n')[0].replace(/^\*\*(.*)\*\*$/, '$1') || 'Título do Documento';
+                    updateUIForEditMode();
+                    exportButton.textContent = 'Importado!';
+                    setTimeout(() => {
+                        exportButton.textContent = 'Exportar';
+                    }, 3000);
+                } else {
+                    exportButton.textContent = 'Documento vazio';
+                    setTimeout(() => {
+                        exportButton.textContent = 'Importar';
+                    }, 3000);
+                }
+            };
+            reader.readAsText(file);
         }
     });
 
