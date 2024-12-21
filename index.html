@@ -151,14 +151,15 @@
         <input type="text" class="title-display" id="documentTitle" value="Título do Documento" />
         <div>
             <button class="button" id="editButton">Edit</button>
-            <div class="button" id="exportButton">Importar
+            <button class="button" id="importButton">Importar</button>
+            <div class="button" id="exportButton" style="display: none;">Exportar
                 <div class="dropdown-menu" id="exportMenu">
                     <button id="exportPDF">PDF</button>
                     <button id="exportMD">MD</button>
                 </div>
             </div>
             <button class="button" id="saveButton">Salvar</button>
-            <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
+            <a href="?new" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
@@ -168,6 +169,7 @@
 <script>
     const saveButton = document.getElementById('saveButton');
     const exportButton = document.getElementById('exportButton');
+    const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
     const exportPDFButton = document.getElementById('exportPDF');
     const exportMDButton = document.getElementById('exportMD');
@@ -179,6 +181,18 @@
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
+    let autoSaveInterval;
+
+    function isLocalStorageAvailable() {
+        try {
+            const testKey = '__test__';
+            localStorage.setItem(testKey, testKey);
+            localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
 
     function normalizeContent(content) {
         return content.replace(/\n{3,}/g, '\n\n').trim();
@@ -197,31 +211,32 @@
     function toggleDarkMode() {
         isDarkMode = !isDarkMode;
         document.body.classList.toggle('dark-mode', isDarkMode);
+        if (isLocalStorageAvailable()) {
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        }
+    }
+
+    function autoSaveDocument() {
+        if (isLocalStorageAvailable() && (markdownContent.trim() || window.location.search.includes('?new'))) {
+            const title = documentTitle.value || 'Untitled';
+            const documentKey = `doc_${title}`;
+            localStorage.setItem(documentKey, markdownContent);
+        }
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'visible') {
+            autoSaveDocument(); // Save immediately when the tab gains focus
+            if (!autoSaveInterval) {
+                autoSaveInterval = setInterval(autoSaveDocument, 30000); // Save every 30 seconds
+            }
+        } else {
+            clearInterval(autoSaveInterval);
+            autoSaveInterval = null;
+        }
     }
 
     modeToggle.addEventListener('click', toggleDarkMode);
-
-    function saveToLocalStorage() {
-        if (typeof(Storage) !== "undefined") {
-            const title = documentTitle.value;
-            const content = markdownContent;
-            localStorage.setItem('documentTitle', title);
-            localStorage.setItem('documentContent', content);
-        } else {
-            console.error("LocalStorage não está disponível.");
-        }
-    }
-
-    function loadFromLocalStorage() {
-        if (typeof(Storage) !== "undefined") {
-            const title = localStorage.getItem('documentTitle') || 'Título do Documento';
-            const content = localStorage.getItem('documentContent') || '';
-            documentTitle.value = title;
-            markdownContent = normalizeContent(content);
-        } else {
-            console.error("LocalStorage não está disponível.");
-        }
-    }
 
     saveButton.addEventListener('click', () => {
         const title = documentTitle.value;
@@ -236,12 +251,12 @@
         });
     });
 
+    importButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
     exportButton.addEventListener('click', () => {
-        if (markdownContent.trim()) {
-            exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
-        } else {
-            fileInput.click();
-        }
+        exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
     });
 
     document.addEventListener('click', (event) => {
@@ -288,20 +303,20 @@
                 }
             }
             document.body.removeChild(tempDiv);
-
+            
             const pdfBlob = doc.output('blob');
             const blobUrl = URL.createObjectURL(pdfBlob);
             window.open(blobUrl, '_blank');
-
+            
             exportButton.textContent = 'Exportado!';
             setTimeout(() => {
-                updateExportButtonText();
+                updateExportButtonVisibility();
             }, 3000);
         } catch (error) {
             console.error('Erro ao exportar PDF:', error);
             exportButton.textContent = 'Erro!';
             setTimeout(() => {
-                updateExportButtonText();
+                updateExportButtonVisibility();
             }, 3000);
         }
     });
@@ -329,7 +344,7 @@
     contentArea.addEventListener('input', () => {
         if (isEditMode) {
             markdownContent = normalizeContent(contentArea.innerText);
-            updateExportButtonText();
+            updateExportButtonVisibility();
         }
     });
 
@@ -351,11 +366,11 @@
                     }
                     isEditMode = false;
                     updateUIForEditMode();
-                    updateExportButtonText();
+                    updateExportButtonVisibility();
                 } else {
-                    exportButton.textContent = 'Documento vazio';
+                    importButton.textContent = 'Documento vazio';
                     setTimeout(() => {
-                        updateExportButtonText();
+                        updateExportButtonVisibility();
                     }, 3000);
                 }
             };
@@ -374,25 +389,51 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        if (params.title || params.content) {
-            const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
-            const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
+        const isNewDocument = params.new !== undefined;
+        const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
+        const documentKey = `doc_${title}`;
+        if (isNewDocument) {
             documentTitle.value = title;
-            markdownContent = normalizeContent(content);
+            markdownContent = '';
+            isEditMode = true; // Start in edit mode for new documents
+        } else if (isLocalStorageAvailable() && localStorage.getItem(documentKey)) {
+            documentTitle.value = title;
+            markdownContent = localStorage.getItem(documentKey);
+            isEditMode = false;
         } else {
-            loadFromLocalStorage();
+            documentTitle.value = title;
+            markdownContent = '';
+            isEditMode = true;
         }
-        isEditMode = !!markdownContent.trim();
         updateUIForEditMode();
-        updateExportButtonText();
+        updateExportButtonVisibility();
     }
 
-    function updateExportButtonText() {
-        exportButton.textContent = markdownContent.trim() ? 'Exportar' : 'Importar';
+    function updateExportButtonVisibility() {
+        if (markdownContent.trim()) {
+            importButton.style.display = 'none';
+            exportButton.style.display = 'inline-block';
+        } else {
+            importButton.style.display = 'inline-block';
+            exportButton.style.display = 'none';
+        }
     }
 
-    setInterval(saveToLocalStorage, 30000);
+    function loadThemePreference() {
+        if (isLocalStorageAvailable()) {
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'enabled') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+            }
+        }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    loadThemePreference();
     initializeContentFromURL();
+    handleVisibilityChange(); // Initialize auto-save on page load
 </script>
 </body>
 </html>
