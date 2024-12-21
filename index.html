@@ -158,7 +158,7 @@
                     <button id="exportMD">MD</button>
                 </div>
             </div>
-            <button class="button" id="saveButton">Salvar</button>
+            <button class="button" id="saveButton">Magic</button>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
@@ -221,7 +221,7 @@
         const title = documentTitle.value;
         const fullContent = `**${title}**\n\n${markdownContent}`;
         navigator.clipboard.writeText(fullContent).then(() => {
-            saveButton.textContent = 'Cole no Magic para salvar';
+            saveButton.textContent = 'Cole no Magic para colaborar';
             setTimeout(() => {
                 saveButton.textContent = 'Salvar';
             }, 3000);
