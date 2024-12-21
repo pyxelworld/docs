@@ -130,63 +130,49 @@
         .dark-mode [contenteditable=true]:empty:before {
             color: rgba(255, 255, 255, 0.5);
         }
-        .popup {
+        .popup-menu {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: #f0f0f0;
-            padding: 20px;
-            border-radius: 20px;
             box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            z-index: 1001;
-            width: 80%;
-            max-width: 500px;
-        }
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .popup-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .popup-close {
-            cursor: pointer;
-            font-size: 18px;
-        }
-        .document-list {
-            max-height: 300px;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 2000;
+            width: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
-        .document-item {
+        .popup-menu .document-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            border-radius: 10px;
             margin-bottom: 10px;
+            border-radius: 20px;
             background-color: #e0e0e0;
             transition: background-color 0.3s;
         }
-        .document-item:hover {
+        .popup-menu .document-item:hover {
             background-color: #d0d0d0;
         }
-        .document-title {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        .icon-button {
+        .popup-menu .document-item i {
+            margin-left: 10px;
             cursor: pointer;
-            margin-left: 5px;
-            color: #333;
-            transition: color 0.3s;
         }
-        .icon-button:hover {
-            color: #000;
+        .popup-menu .new-document {
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 20px;
+            background-color: #e0e0e0;
+            transition: background-color 0.3s;
+        }
+        .popup-menu .new-document:hover {
+            background-color: #d0d0d0;
         }
         @media (max-width: 600px) {
             .title-bar {
@@ -218,27 +204,15 @@
             </div>
             <button class="button" id="magicButton">Magic</button>
             <button class="button" id="saveButton">Salvar</button>
-            <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
     <div class="content-area" contenteditable="false" placeholder="Escreva aqui..." id="contentArea"></div>
     <input type="file" id="fileInput" style="display:none;" accept=".md"/>
-</div>
-
-<div class="popup" id="savePopup">
-    <div class="popup-header">
-        <span class="popup-title">Documentos Salvos</span>
-        <span class="popup-close" id="closePopup">&times;</span>
-    </div>
-    <div class="document-list" id="documentList">
-        <!-- Document items will be dynamically added here -->
-    </div>
-    <div class="document-item" id="newDocument">
-        <span class="document-title">Novo Documento</span>
+    <div class="popup-menu" id="saveMenu">
+        <div class="document-item new-document" id="newDocumentButton">Novo</div>
     </div>
 </div>
-
 <script>
     const magicButton = document.getElementById('magicButton');
     const saveButton = document.getElementById('saveButton');
@@ -252,14 +226,11 @@
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
     const fileInput = document.getElementById('fileInput');
-    const savePopup = document.getElementById('savePopup');
-    const closePopup = document.getElementById('closePopup');
-    const documentList = document.getElementById('documentList');
-    const newDocument = document.getElementById('newDocument');
+    const saveMenu = document.getElementById('saveMenu');
+    const newDocumentButton = document.getElementById('newDocumentButton');
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
-    let currentDocumentKey = null;
 
     function isLocalStorageAvailable() {
         try {
@@ -294,85 +265,6 @@
         }
     }
 
-    function showSavePopup() {
-        savePopup.style.display = 'block';
-        updateDocumentList();
-    }
-
-    function hideSavePopup() {
-        savePopup.style.display = 'none';
-    }
-
-    function updateDocumentList() {
-        documentList.innerHTML = '';
-        if (isLocalStorageAvailable()) {
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('doc_')) {
-                    const docTitle = key.replace('doc_', '');
-                    const docItem = document.createElement('div');
-                    docItem.className = 'document-item';
-                    docItem.innerHTML = `
-                        <span class="document-title">${docTitle}</span>
-                        <i class="fas fa-sync-alt icon-button" data-action="overwrite" data-key="${key}"></i>
-                        <i class="fas fa-trash icon-button" data-action="delete" data-key="${key}"></i>
-                    `;
-                    documentList.appendChild(docItem);
-                }
-            });
-        }
-    }
-
-    function saveDocument() {
-        const title = documentTitle.value || 'Documento sem título';
-        const content = `**${title}**\n\n${markdownContent}`;
-        if (isLocalStorageAvailable()) {
-            const key = `doc_${title}`;
-            localStorage.setItem(key, content);
-            currentDocumentKey = key;
-            alert('Documento salvo com sucesso!');
-        } else {
-            alert('LocalStorage não está disponível.');
-        }
-    }
-
-    function overwriteDocument(key) {
-        const content = `**${documentTitle.value}**\n\n${markdownContent}`;
-        if (isLocalStorageAvailable()) {
-            localStorage.setItem(key, content);
-            alert('Documento atualizado com sucesso!');
-        } else {
-            alert('LocalStorage não está disponível.');
-        }
-    }
-
-    function deleteDocument(key) {
-        if (isLocalStorageAvailable()) {
-            localStorage.removeItem(key);
-            updateDocumentList();
-            alert('Documento deletado com sucesso!');
-        } else {
-            alert('LocalStorage não está disponível.');
-        }
-    }
-
-    function loadDocument(key) {
-        if (isLocalStorageAvailable()) {
-            const content = localStorage.getItem(key);
-            if (content) {
-                const lines = content.split('\n');
-                const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
-                if (titleLine) {
-                    documentTitle.value = titleLine[1];
-                    markdownContent = lines.slice(1).join('\n').trim();
-                    currentDocumentKey = key;
-                    isEditMode = false;
-                    updateUIForEditMode();
-                    updateExportButtonVisibility();
-                }
-            }
-        }
-    }
-
     modeToggle.addEventListener('click', toggleDarkMode);
 
     magicButton.addEventListener('click', () => {
@@ -388,31 +280,65 @@
         });
     });
 
-    saveButton.addEventListener('click', showSavePopup);
-
-    closePopup.addEventListener('click', hideSavePopup);
-
-    documentList.addEventListener('click', (event) => {
-        const action = event.target.getAttribute('data-action');
-        const key = event.target.getAttribute('data-key');
-        if (action === 'overwrite') {
-            overwriteDocument(key);
-        } else if (action === 'delete') {
-            deleteDocument(key);
-        } else if (key) {
-            loadDocument(key);
-            hideSavePopup();
-        }
+    saveButton.addEventListener('click', () => {
+        saveMenu.style.display = saveMenu.style.display === 'block' ? 'none' : 'block';
+        updateSaveMenu();
     });
 
-    newDocument.addEventListener('click', () => {
-        currentDocumentKey = null;
+    newDocumentButton.addEventListener('click', () => {
+        saveCurrentDocument();
+        createNewDocument();
+        updateSaveMenu();
+    });
+
+    function saveCurrentDocument() {
+        const title = documentTitle.value;
+        const content = markdownContent;
+        if (isLocalStorageAvailable()) {
+            const documents = JSON.parse(localStorage.getItem('documents')) || {};
+            documents[title] = content;
+            localStorage.setItem('documents', JSON.stringify(documents));
+        }
+    }
+
+    function createNewDocument() {
         documentTitle.value = 'Novo Documento';
         markdownContent = '';
         isEditMode = true;
         updateUIForEditMode();
-        hideSavePopup();
-    });
+    }
+
+    function updateSaveMenu() {
+        const documents = JSON.parse(localStorage.getItem('documents')) || {};
+        const documentItems = Object.keys(documents).map(title => {
+            return `<div class="document-item">
+                        <span>${title}</span>
+                        <i class="fas fa-sync" onclick="overwriteDocument('${title}')"></i>
+                        <i class="fas fa-trash" onclick="deleteDocument('${title}')"></i>
+                    </div>`;
+        }).join('');
+        saveMenu.innerHTML = `<div class="document-item new-document" id="newDocumentButton">Novo</div>${documentItems}`;
+    }
+
+    function overwriteDocument(title) {
+        const content = markdownContent;
+        if (isLocalStorageAvailable()) {
+            const documents = JSON.parse(localStorage.getItem('documents')) || {};
+            documents[title] = content;
+            localStorage.setItem('documents', JSON.stringify(documents));
+            alert(`Documento "${title}" foi sobrescrito.`);
+        }
+    }
+
+    function deleteDocument(title) {
+        if (isLocalStorageAvailable()) {
+            const documents = JSON.parse(localStorage.getItem('documents')) || {};
+            delete documents[title];
+            localStorage.setItem('documents', JSON.stringify(documents));
+            updateSaveMenu();
+            alert(`Documento "${title}" foi deletado.`);
+        }
+    }
 
     importButton.addEventListener('click', () => {
         fileInput.click();
@@ -425,6 +351,9 @@
     document.addEventListener('click', (event) => {
         if (!exportButton.contains(event.target)) {
             exportMenu.style.display = 'none';
+        }
+        if (!saveButton.contains(event.target)) {
+            saveMenu.style.display = 'none';
         }
     });
 
@@ -497,16 +426,18 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        exportButton.textContent = 'Exportado!';
-        setTimeout(() => {
-            updateExportButtonVisibility();
-        }, 3000);
     });
 
     editButton.addEventListener('click', () => {
         isEditMode = !isEditMode;
         updateUIForEditMode();
-        updateExportButtonVisibility();
+    });
+
+    contentArea.addEventListener('input', () => {
+        if (isEditMode) {
+            markdownContent = normalizeContent(contentArea.innerText);
+            updateExportButtonVisibility();
+        }
     });
 
     fileInput.addEventListener('change', (event) => {
@@ -514,20 +445,50 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                markdownContent = e.target.result;
-                const lines = markdownContent.split('\n');
-                const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
-                if (titleLine) {
-                    documentTitle.value = titleLine[1];
-                    markdownContent = lines.slice(1).join('\n').trim();
+                const content = e.target.result;
+                if (content.trim()) {
+                    const lines = content.split('\n');
+                    const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
+                    if (titleLine) {
+                        documentTitle.value = titleLine[1];
+                        markdownContent = lines.slice(1).join('\n').trim();
+                    } else {
+                        documentTitle.value = file.name.replace('.md', '');
+                        markdownContent = content;
+                    }
                     isEditMode = false;
                     updateUIForEditMode();
                     updateExportButtonVisibility();
+                } else {
+                    importButton.textContent = 'Documento vazio';
+                    setTimeout(() => {
+                        updateExportButtonVisibility();
+                    }, 3000);
                 }
             };
             reader.readAsText(file);
         }
     });
+
+    function getQueryParams() {
+        const params = {};
+        window.location.search.substring(1).split('&').forEach(param => {
+            const [key, value] = param.split('=');
+            params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+        });
+        return params;
+    }
+
+    function initializeContentFromURL() {
+        const params = getQueryParams();
+const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
+        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
+        documentTitle.value = title;
+        markdownContent = content;
+        isEditMode = false;
+        updateUIForEditMode();
+        updateExportButtonVisibility();
+    }
 
     function updateExportButtonVisibility() {
         exportButton.style.display = markdownContent.trim() ? 'inline-block' : 'none';
@@ -535,12 +496,17 @@
 
     window.addEventListener('load', () => {
         if (isLocalStorageAvailable()) {
-            const darkModeSetting = localStorage.getItem('darkMode');
-            if (darkModeSetting === 'enabled') {
-                toggleDarkMode();
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'enabled') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+            }
+            const savedDocuments = JSON.parse(localStorage.getItem('documents')) || {};
+            if (Object.keys(savedDocuments).length > 0) {
+                updateSaveMenu();
             }
         }
-        updateExportButtonVisibility();
+        initializeContentFromURL();
     });
 </script>
 </body>
