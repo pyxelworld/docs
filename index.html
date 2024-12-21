@@ -159,7 +159,7 @@
                 </div>
             </div>
             <button class="button" id="saveButton">Salvar</button>
-            <a href="?new" class="button" id="newButton">Novo</a>
+            <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
@@ -181,7 +181,6 @@
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
-    let autoSaveInterval;
 
     function isLocalStorageAvailable() {
         try {
@@ -213,26 +212,6 @@
         document.body.classList.toggle('dark-mode', isDarkMode);
         if (isLocalStorageAvailable()) {
             localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
-        }
-    }
-
-    function autoSaveDocument() {
-        if (isLocalStorageAvailable() && (markdownContent.trim() || window.location.search.includes('?new'))) {
-            const title = documentTitle.value || 'Untitled';
-            const documentKey = `doc_${title}`;
-            localStorage.setItem(documentKey, markdownContent);
-        }
-    }
-
-    function handleVisibilityChange() {
-        if (document.visibilityState === 'visible') {
-            autoSaveDocument(); // Save immediately when the tab gains focus
-            if (!autoSaveInterval) {
-                autoSaveInterval = setInterval(autoSaveDocument, 5000); // Save every 5 seconds
-            }
-        } else {
-            clearInterval(autoSaveInterval);
-            autoSaveInterval = null;
         }
     }
 
@@ -389,22 +368,11 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        const isNewDocument = params.new !== undefined;
         const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
-        const documentKey = `doc_${title}`;
-        if (isNewDocument) {
-            documentTitle.value = title;
-            markdownContent = '';
-            isEditMode = true; // Start in edit mode for new documents
-        } else if (isLocalStorageAvailable() && localStorage.getItem(documentKey)) {
-            documentTitle.value = title;
-            markdownContent = localStorage.getItem(documentKey);
-            isEditMode = false;
-        } else {
-            documentTitle.value = title;
-            markdownContent = '';
-            isEditMode = true;
-        }
+        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
+        documentTitle.value = title;
+        markdownContent = normalizeContent(content);
+        isEditMode = !markdownContent.trim();
         updateUIForEditMode();
         updateExportButtonVisibility();
     }
@@ -429,11 +397,8 @@
         }
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     loadThemePreference();
     initializeContentFromURL();
-    handleVisibilityChange(); // Initialize auto-save on page load
 </script>
 </body>
 </html>
