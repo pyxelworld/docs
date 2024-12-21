@@ -228,7 +228,7 @@
         if (document.visibilityState === 'visible') {
             autoSaveDocument(); // Save immediately when the tab gains focus
             if (!autoSaveInterval) {
-                autoSaveInterval = setInterval(autoSaveDocument, 30000); // Save every 30 seconds
+                autoSaveInterval = setInterval(autoSaveDocument, 5000); // Save every 5 seconds
             }
         } else {
             clearInterval(autoSaveInterval);
