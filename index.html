@@ -159,7 +159,7 @@
                 </div>
             </div>
             <button class="button" id="saveButton">Salvar</button>
-            <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
+            <a href="?new" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
     </div>
@@ -181,6 +181,18 @@
     let isEditMode = false;
     let markdownContent = '';
     let isDarkMode = false;
+    let autoSaveInterval;
+
+    function isLocalStorageAvailable() {
+        try {
+            const testKey = '__test__';
+            localStorage.setItem(testKey, testKey);
+            localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
 
     function normalizeContent(content) {
         return content.replace(/\n{3,}/g, '\n\n').trim();
@@ -199,6 +211,29 @@
     function toggleDarkMode() {
         isDarkMode = !isDarkMode;
         document.body.classList.toggle('dark-mode', isDarkMode);
+        if (isLocalStorageAvailable()) {
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        }
+    }
+
+    function autoSaveDocument() {
+        if (isLocalStorageAvailable() && (markdownContent.trim() || window.location.search.includes('?new'))) {
+            const title = documentTitle.value || 'Untitled';
+            const documentKey = `doc_${title}`;
+            localStorage.setItem(documentKey, markdownContent);
+        }
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'visible') {
+            autoSaveDocument(); // Save immediately when the tab gains focus
+            if (!autoSaveInterval) {
+                autoSaveInterval = setInterval(autoSaveDocument, 30000); // Save every 30 seconds
+            }
+        } else {
+            clearInterval(autoSaveInterval);
+            autoSaveInterval = null;
+        }
     }
 
     modeToggle.addEventListener('click', toggleDarkMode);
@@ -354,11 +389,22 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
+        const isNewDocument = params.new !== undefined;
         const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
-        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
-        documentTitle.value = title;
-        markdownContent = normalizeContent(content);
-        isEditMode = !markdownContent.trim();
+        const documentKey = `doc_${title}`;
+        if (isNewDocument) {
+            documentTitle.value = title;
+            markdownContent = '';
+            isEditMode = true; // Start in edit mode for new documents
+        } else if (isLocalStorageAvailable() && localStorage.getItem(documentKey)) {
+            documentTitle.value = title;
+            markdownContent = localStorage.getItem(documentKey);
+            isEditMode = false;
+        } else {
+            documentTitle.value = title;
+            markdownContent = '';
+            isEditMode = true;
+        }
         updateUIForEditMode();
         updateExportButtonVisibility();
     }
@@ -373,7 +419,21 @@
         }
     }
 
+    function loadThemePreference() {
+        if (isLocalStorageAvailable()) {
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'enabled') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+            }
+        }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    loadThemePreference();
     initializeContentFromURL();
+    handleVisibilityChange(); // Initialize auto-save on page load
 </script>
 </body>
 </html>
