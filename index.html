@@ -3,178 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Docs</title>
+    <title>Magic Docs BETA</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Garet:wght@300;400;700&display=swap');
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Garet', sans-serif;
-            height: 100%;
-            background-color: #f0f0f0;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .editor-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-        .title-bar {
-            background-color: #f0f0f0;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 20px;
-            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            margin-bottom: 10px;
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-        .title-display {
-            font-size: 20px;
-            font-weight: bold;
-            flex-grow: 1;
-            margin-right: 10px;
-            color: #333;
-            border: none;
-            background: none;
-            outline: none;
-            transition: color 0.3s;
-        }
-        .button {
-            padding: 8px 18px;
-            margin-left: 5px;
-            border: none;
-            border-radius: 20px;
-            background-color: #f0f0f0;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-            position: relative;
-        }
-        .button:hover {
-            background-color: #e0e0e0;
-        }
-        .button:active {
-            box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff;
-        }
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: #f0f0f0;
-            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            z-index: 1000;
-        }
-        .dropdown-menu button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            background-color: #f0f0f0;
-            color: #333;
-            cursor: pointer;
-            text-align: left;
-            transition: background-color 0.3s;
-        }
-        .dropdown-menu button:hover {
-            background-color: #e0e0e0;
-        }
-        .content-area {
-            flex-grow: 1;
-            padding: 25px;
-            overflow-y: auto;
-            line-height: 1.6;
-            background-color: #f8f9fa;
-            border-radius: 20px;
-            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-        [contenteditable=true]:empty:before {
-            content: attr(placeholder);
-            color: rgba(0,0,0,0.5);
-            font-style: italic;
-        }
-        .dark-mode {
-            background-color: #2c2c2c;
-            color: #f0f0f0;
-        }
-        .dark-mode .title-bar, .dark-mode .button, .dark-mode .content-area {
-            background-color: #2c2c2c;
-            box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e;
-        }
-        .dark-mode .button, .dark-mode .title-display {
-            color: #ffffff;
-        }
-        .dark-mode .button:hover {
-            background-color: #3e3e3e;
-        }
-        .dark-mode .dropdown-menu {
-            background-color: #3e3e3e;
-        }
-        .dark-mode .dropdown-menu button {
-            background-color: #3e3e3e;
-            color: #ffffff;
-        }
-        .dark-mode .dropdown-menu button:hover {
-            background-color: #4e4e4e;
-        }
-        .mode-toggle {
-            font-size: 18px;
-            cursor: pointer;
-            margin-left: 5px;
-            padding: 8px;
-            border-radius: 20px;
-            background-color: #f0f0f0;
-            color: #333;
-            box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        .mode-toggle:hover {
-            background-color: #e0e0e0;
-        }
-        .mode-toggle:active {
-            box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff;
-        }
-        .dark-mode .mode-toggle {
-            color: #ffffff;
-            background-color: #2c2c2c;
-            box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e;
-        }
-        .dark-mode [contenteditable=true]:empty:before {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        @media (max-width: 600px) {
-            .title-bar {
-                flex-wrap: wrap;
-            }
-            .title-display {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            .button {
-                font-size: 12px;
-                padding: 6px 14px;
-            }
-            .mode-toggle {
-                font-size: 16px;
-                padding: 6px;
-            }
-        }
+        body, html { margin: 0; padding: 0; font-family: 'Garet', sans-serif; height: 100%; background-color: #f0f0f0; transition: background-color 0.3s, color 0.3s; }
+        .editor-container { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
+        .title-bar { background-color: #f0f0f0; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; margin-bottom: 10px; transition: background-color 0.3s, box-shadow 0.3s; }
+        .title-display { font-size: 20px; font-weight: bold; flex-grow: 1; margin-right: 10px; color: #333; border: none; background: none; outline: none; transition: color 0.3s; }
+        .button { padding: 8px 18px; margin-left: 5px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.3s ease; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; font-size: 14px; text-decoration: none; display: inline-block; position: relative; }
+        .button:hover { background-color: #e0e0e0; }
+        .button:active { box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background-color: #f0f0f0; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; border-radius: 10px; overflow: hidden; z-index: 1000; }
+        .dropdown-menu button { width: 100%; padding: 10px; border: none; background-color: #f0f0f0; color: #333; cursor: pointer; text-align: left; transition: background-color 0.3s; }
+        .dropdown-menu button:hover { background-color: #e0e0e0; }
+        .content-area { flex-grow: 1; padding: 25px; overflow-y: auto; line-height: 1.6; background-color: #f8f9fa; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: background-color 0.3s, box-shadow 0.3s; }
+        [contenteditable=true]:empty:before { content: attr(placeholder); color: rgba(0,0,0,0.5); font-style: italic; }
+        .dark-mode { background-color: #2c2c2c; color: #f0f0f0; }
+        .dark-mode .title-bar, .dark-mode .button, .dark-mode .content-area { background-color: #2c2c2c; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
+        .dark-mode .button, .dark-mode .title-display { color: #ffffff; }
+        .dark-mode .button:hover { background-color: #3e3e3e; }
+        .dark-mode .dropdown-menu { background-color: #3e3e3e; }
+        .dark-mode .dropdown-menu button { background-color: #3e3e3e; color: #ffffff; }
+        .dark-mode .dropdown-menu button:hover { background-color: #4e4e4e; }
+        .mode-toggle { font-size: 18px; cursor: pointer; margin-left: 5px; padding: 8px; border-radius: 20px; background-color: #f0f0f0; color: #333; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: all 0.3s ease; border: none; }
+        .mode-toggle:hover { background-color: #e0e0e0; }
+        .mode-toggle:active { box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff; }
+        .dark-mode .mode-toggle { color: #ffffff; background-color: #2c2c2c; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
+        .dark-mode [contenteditable=true]:empty:before { color: rgba(255, 255, 255, 0.5); }
+        @media (max-width: 600px) { .title-bar { flex-wrap: wrap; } .title-display { width: 100%; margin-bottom: 10px; } .button { font-size: 12px; padding: 6px 14px; } .mode-toggle { font-size: 16px; padding: 6px; } }
     </style>
 </head>
 <body>
@@ -424,6 +284,53 @@
 
     loadThemePreference();
     initializeContentFromURL();
+
+    const CACHE_NAME = 'magic-docs-cache-v1';
+    const urlsToCache = [
+        '/',
+        '/index.html',
+        'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'
+    ];
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register(URL.createObjectURL(new Blob([`
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open('${CACHE_NAME}')
+                            .then(cache => cache.addAll(${JSON.stringify(urlsToCache)}))
+                    );
+                });
+
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                    );
+                });
+
+                self.addEventListener('activate', event => {
+                    const cacheWhitelist = ['${CACHE_NAME}'];
+                    event.waitUntil(
+                        caches.keys().then(cacheNames => {
+                            return Promise.all(
+                                cacheNames.map(cacheName => {
+                                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                });
+            `], { type: 'application/javascript' })))
+            .then(registration => console.log('Service Worker registrado com sucesso:', registration))
+            .catch(error => console.log('Falha ao registrar o Service Worker:', error));
+        });
+    }
 </script>
 </body>
 </html>
