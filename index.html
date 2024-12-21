@@ -158,7 +158,12 @@
                     <button id="exportMD">MD</button>
                 </div>
             </div>
-            <button class="button" id="saveButton">Magic</button>
+            <div class="button" id="saveLinkButton">Salvar
+                <div class="dropdown-menu" id="saveMenu">
+                    <button id="saveNew">Novo</button>
+                    <div id="savedDocuments"></div>
+                </div>
+            </div>
             <a href="https://docs.pyxelworld.com/" target="_blank" class="button" id="newButton">Novo</a>
             <i class="fas fa-adjust mode-toggle" id="modeToggle"></i>
         </div>
@@ -168,6 +173,10 @@
 </div>
 <script>
     const saveButton = document.getElementById('saveButton');
+    const saveLinkButton = document.getElementById('saveLinkButton');
+    const saveMenu = document.getElementById('saveMenu');
+    const saveNewButton = document.getElementById('saveNew');
+    const savedDocumentsDiv = document.getElementById('savedDocuments');
     const exportButton = document.getElementById('exportButton');
     const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
@@ -217,18 +226,52 @@
 
     modeToggle.addEventListener('click', toggleDarkMode);
 
-    saveButton.addEventListener('click', () => {
-        const title = documentTitle.value;
-        const fullContent = `**${title}**\n\n${markdownContent}`;
-        navigator.clipboard.writeText(fullContent).then(() => {
-            saveButton.textContent = 'Cole no Magic para colaborar';
+    saveLinkButton.addEventListener('click', () => {
+        saveMenu.style.display = saveMenu.style.display === 'block' ? 'none' : 'block';
+        updateSavedDocumentsMenu();
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!saveLinkButton.contains(event.target)) {
+            saveMenu.style.display = 'none';
+        }
+    });
+
+    saveNewButton.addEventListener('click', () => {
+        const title = encodeURIComponent(documentTitle.value);
+        const content = encodeURIComponent(markdownContent);
+        const link = `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
+        navigator.clipboard.writeText(link).then(() => {
+            saveNewButton.textContent = 'Link para documento copiado';
             setTimeout(() => {
-                saveButton.textContent = 'Salvar';
+                saveNewButton.textContent = 'Novo';
+                window.open(link, '_blank');
             }, 3000);
+            saveDocumentToLocalStorage(title, link);
+            updateSavedDocumentsMenu();
         }).catch(error => {
-            console.error('Erro ao copiar para a área de transferência:', error);
+            console.error('Erro ao copiar o link:', error);
         });
     });
+
+    function saveDocumentToLocalStorage(title, link) {
+        if (!isLocalStorageAvailable()) return;
+        const documents = JSON.parse(localStorage.getItem('documents')) || [];
+        documents.push({ title: decodeURIComponent(title), link });
+        localStorage.setItem('documents', JSON.stringify(documents));
+    }
+
+    function updateSavedDocumentsMenu() {
+        if (!isLocalStorageAvailable()) return;
+        const documents = JSON.parse(localStorage.getItem('documents')) || [];
+        savedDocumentsDiv.innerHTML = '';
+        documents.forEach(doc => {
+            const button = document.createElement('button');
+            button.textContent = doc.title;
+            button.onclick = () => window.open(doc.link, '_blank');
+            savedDocumentsDiv.appendChild(button);
+        });
+    }
 
     importButton.addEventListener('click', () => {
         fileInput.click();
