@@ -145,6 +145,10 @@
             max-height: 400px;
             overflow-y: auto;
         }
+        .dark-mode .popup-menu {
+            background-color: #2c2c2c;
+            box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e;
+        }
         .popup-menu .document-item {
             display: flex;
             justify-content: space-between;
@@ -155,8 +159,14 @@
             background-color: #e0e0e0;
             transition: background-color 0.3s;
         }
+        .dark-mode .popup-menu .document-item {
+            background-color: #3e3e3e;
+        }
         .popup-menu .document-item:hover {
             background-color: #d0d0d0;
+        }
+        .dark-mode .popup-menu .document-item:hover {
+            background-color: #4e4e4e;
         }
         .popup-menu .document-item i {
             margin-left: 10px;
@@ -171,8 +181,14 @@
             background-color: #e0e0e0;
             transition: background-color 0.3s;
         }
+        .dark-mode .popup-menu .new-document {
+            background-color: #3e3e3e;
+        }
         .popup-menu .new-document:hover {
             background-color: #d0d0d0;
+        }
+        .dark-mode .popup-menu .new-document:hover {
+            background-color: #4e4e4e;
         }
         @media (max-width: 600px) {
             .title-bar {
@@ -281,6 +297,7 @@
     });
 
     saveButton.addEventListener('click', () => {
+        saveCurrentDocument();
         saveMenu.style.display = saveMenu.style.display === 'block' ? 'none' : 'block';
         updateSaveMenu();
     });
@@ -448,41 +465,23 @@
                 const content = e.target.result;
                 if (content.trim()) {
                     const lines = content.split('\n');
-                    const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
-                    if (titleLine) {
-                        documentTitle.value = titleLine[1];
-                        markdownContent = lines.slice(1).join('\n').trim();
-                    } else {
-                        documentTitle.value = file.name.replace('.md', '');
-                        markdownContent = content;
-                    }
+const titleLine = lines[0].match(/^\*\*(.*)\*\*$/);
+                    const title = titleLine ? titleLine[1] : 'Documento Importado';
+                    documentTitle.value = title;
+                    markdownContent = lines.slice(1).join('\n').trim();
                     isEditMode = false;
                     updateUIForEditMode();
                     updateExportButtonVisibility();
-                } else {
-                    importButton.textContent = 'Documento vazio';
-                    setTimeout(() => {
-                        updateExportButtonVisibility();
-                    }, 3000);
                 }
             };
             reader.readAsText(file);
         }
     });
 
-    function getQueryParams() {
-        const params = {};
-        window.location.search.substring(1).split('&').forEach(param => {
-            const [key, value] = param.split('=');
-            params[decodeURIComponent(key)] = decodeURIComponent(value || '');
-        });
-        return params;
-    }
-
     function initializeContentFromURL() {
-        const params = getQueryParams();
-const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
-        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
+        const params = new URLSearchParams(window.location.search);
+        const title = params.get('title') ? decodeURIComponent(params.get('title').replace(/%25/g, '%')) : 'Título do Documento';
+        const content = params.get('content') ? decodeURIComponent(params.get('content').replace(/%25/g, '%')) : '';
         documentTitle.value = title;
         markdownContent = content;
         isEditMode = false;
