@@ -149,10 +149,10 @@
             const title = documentTitle.value || 'Título do Documento';
             const content = marked.parse(markdownContent);
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 11pt;">${title}</h1>${content}`;
+            tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 20pt;">${title}</h1>${content}`;
             tempDiv.style.width = `${contentWidth}cm`;
             tempDiv.style.fontFamily = 'Garet, sans-serif';
-            tempDiv.style.fontSize = '8pt';
+            tempDiv.style.fontSize = '11pt';
             tempDiv.style.color = 'black';
             tempDiv.style.backgroundColor = 'white';
             document.body.appendChild(tempDiv);
