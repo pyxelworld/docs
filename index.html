@@ -86,6 +86,7 @@
         }
     }
 
+    // Normalize content by replacing multiple consecutive line breaks with two line breaks
     function normalizeContent(content) {
         return content.replace(/\n{3,}/g, '\n\n').trim();
     }
