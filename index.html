@@ -98,7 +98,15 @@
             contentArea.innerText = markdownContent.split('\n').join('\n\n');
         } else {
             const processedContent = markdownContent.split('\n').map(line => line.trim() ? line : '&nbsp;').join('  \n');
-            contentArea.innerHTML = processedContent.trim() ? marked.parse(processedContent) : '';
+            contentArea.innerHTML = processedContent.trim() ? marked.parse(processedContent, { 
+                headerIds: false,
+                mangle: false,
+                breaks: true,
+                sanitize: false,
+                smartLists: true,
+                smartypants: true,
+                xhtml: true
+            }) : '';
         }
     }
 
