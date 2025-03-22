@@ -95,9 +95,10 @@
         editButton.textContent = isEditMode ? 'View' : 'Edit';
         contentArea.contentEditable = isEditMode;
         if (isEditMode) {
-            contentArea.innerText = normalizeContent(markdownContent);
+            contentArea.innerText = markdownContent;
         } else {
-            contentArea.innerHTML = markdownContent.trim() ? marked.parse(markdownContent) : '';
+            const processedContent = markdownContent.split('\n').map(line => line.trim() ? line : '&nbsp;').join('  \n');
+            contentArea.innerHTML = processedContent.trim() ? marked.parse(processedContent) : '';
         }
     }
 
