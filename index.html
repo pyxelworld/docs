@@ -88,7 +88,7 @@
 
     // Normalize content by replacing multiple consecutive line breaks with two line breaks
     function normalizeContent(content) {
-        return content.replace(/\n{3,}/g, '\n\n').trim();
+        return content.replace(/\n{2}/g, '\n').replace(/\n{3,}/g, '\n\n').replace(/\n{2}/g, '\n').trim();
     }
 
     function updateUIForEditMode() {
