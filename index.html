@@ -89,7 +89,6 @@
                     <button id='exportMD'>MD</button>
                 </div>
             </div>
-            <button class='button' id='saveLinkButton'>Salvar</button>
             <a href='https://docs.pyxelworld.com/' class='button' id='newButton'>Novo</a>
             <button class='button' id='shareButton'>Compartilhar</button>
             <a href='#' class='button' id='aiButton'>AI</a>
@@ -115,7 +114,6 @@
     </div>
 </div>
 <script>
-    const saveLinkButton = document.getElementById('saveLinkButton');
     const shareButton = document.getElementById('shareButton');
     const exportButton = document.getElementById('exportButton');
     const importButton = document.getElementById('importButton');
@@ -146,7 +144,10 @@
 
     // Normalize content by replacing multiple consecutive line breaks with two line breaks
     function normalizeContent(content) {
-        return content.replace(/\n{2}/g, '\n').replace(/\n{3,}/g, '\n\n').replace(/\n{2}/g, '\n').trim();
+        // Handle line breaks: 1=keep, 2=keep, 3+=2
+        return content
+            .replace(/\n\n\n+/g, '\n\n')  // 3+ newlines => 2
+            .trim();
     }
 
     function updateUIForEditMode() {
@@ -155,7 +156,10 @@
         if (isEditMode) {
             contentArea.innerText = markdownContent.split('\n').join('\n\n');
         } else {
-            const processedContent = markdownContent.split('\n').map(line => line.trim() ? line : '&nbsp;').join('  \n');
+            const processedContent = markdownContent.split('\n').map(line => {
+                // Preserve single empty lines as blank lines
+                return line.trim() ? line : '';
+            }).join('\n');
             contentArea.innerHTML = processedContent.trim() ? marked.parse(processedContent, { 
                 headerIds: false,
                 mangle: false,
@@ -203,10 +207,7 @@
         return `${window.location.origin}${window.location.pathname}?title=${title}&content=${content}`;
     }
 
-    saveLinkButton.addEventListener('click', () => {
-        const link = generateMagicDocsLink();
-        window.location.href = link;
-    });
+    // (No code - remove the block completely)
 
     const sharePopup = document.getElementById('sharePopup');
     const shareInput = document.getElementById('shareInput');
@@ -314,7 +315,7 @@
     });
 
     function hasScriptsOrStyles(content) {
-        return /<script|<style|style=["']|onclick/i.test(content);
+        return /<script|<style|style=['']|onclick/i.test(content);
     }
 
     exportPDFButton.addEventListener('click', () => {
@@ -341,7 +342,7 @@
     });
 
     function hasScriptsOrStyles(content) {
-        return /<script|<style|style=["']|onclick/i.test(content);
+        return /<script|<style|style=['']|onclick/i.test(content);
     }
 
     async function exportPDF() {
@@ -412,6 +413,10 @@
     });
 
     editButton.addEventListener('click', () => {
+        if (isEditMode) {
+            const link = generateMagicDocsLink();
+            window.location.href = link;
+        }
         isEditMode = !isEditMode;
         updateUIForEditMode();
     });
@@ -481,7 +486,7 @@
         const hasContent = markdownContent.trim();
         exportButton.style.display = hasContent ? 'inline-block' : 'none';
         shareButton.style.display = hasContent ? 'inline-block' : 'none';
-        saveLinkButton.style.display = hasContent ? 'inline-block' : 'none';
+
         newButton.style.display = hasContent ? 'inline-block' : 'none';
         editButton.style.display = hasContent ? 'inline-block' : 'none';
     }
