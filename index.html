@@ -10,32 +10,20 @@
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'>
     <style>
         @font-face {
-            font-family: 'Garet';
-            src: url('/fonts/Garet-Book.woff2') format('woff2');
-            font-weight: 300;
+            font-family: 'Garet-Book';
+            src: url('Garet-Book.woff2') format('woff2');
+            font-weight: normal;
             font-style: normal;
-            font-display: swap;
         }
-
         @font-face {
-            font-family: 'Garet';
-            src: url('/fonts/Garet-Regular.woff2') format('woff2');
-            font-weight: 400;
+            font-family: 'Garet-Heavy';
+            src: url('Garet-Heavy.woff2') format('woff2');
+            font-weight: normal;
             font-style: normal;
-            font-display: swap;
         }
-
-        @font-face {
-            font-family: 'Garet';
-            src: url('/fonts/Garet-Heavy.woff2') format('woff2');
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-        }
-        *:not(.fas):not(.far):not(.fab):not(.fa) { font-family: 'Garet', sans-serif !important; }
-        body, html { margin: 0; padding: 0; height: 100%; background-color: #f0f0f0; transition: background-color 0.3s, color 0.3s; }
+        body, html { margin: 0; padding: 0; font-family: 'Garet-Book', sans-serif; height: 100%; background-color: #f0f0f0; transition: background-color 0.3s, color 0.3s; }
         .editor-container { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
-        .title-bar { background-color: #f0f0f0; padding: 10px 15px 10px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; margin-bottom: 10px; transition: background-color 0.3s, box-shadow 0.3s; }
+        .title-bar { background-color: #f0f0f0; padding: 10px 15px 10px 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; margin-bottom: 10px; transition: background-color 0.3s, box-shadow 0.3s; }
         .title-display { 
             font-size: 23px; 
             font-weight: 700 !important; 
@@ -46,31 +34,30 @@
             background: none; 
             outline: none; 
             transition: color 0.3s; 
-            font-family: 'Garet', sans-serif !important; 
+            font-family: 'Garet-Heavy', sans-serif; 
         }
-        .button { padding: 5px 12px; margin-left: 3px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.3s ease; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; font-size: 13px; text-decoration: none; display: inline-block; position: relative; }
+        .button { padding: 5px 12px; margin-left: 3px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.3s ease; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; font-size: 12px; text-decoration: none; display: inline-block; position: relative; font-family: 'Garet-Book', sans-serif; }
         .button:hover { background-color: #e0e0e0; }
         .button:active { box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff; }
         .dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background-color: #f0f0f0; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; border-radius: 10px; overflow: hidden; z-index: 1000; }
-        .dropdown-menu button { width: 100%; padding: 10px; border: none; background-color: #f0f0f0; color: #333; cursor: pointer; text-align: left; transition: background-color 0.3s; }
+        .dropdown-menu button { width: 100%; padding: 10px; border: none; background-color: #f0f0f0; color: #333; cursor: pointer; text-align: left; transition: background-color 0.3s; font-family: 'Garet-Book', sans-serif; }
         .dropdown-menu button:hover { background-color: #e0e0e0; }
         .content-area { flex-grow: 1; padding: 25px; overflow-y: auto; line-height: 1.6; background-color: #f8f9fa; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: background-color 0.3s, box-shadow 0.3s; }
-        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 { font-family: 'Garet', sans-serif !important; font-weight: 700 !important; }
         [contenteditable=true]:empty:before { content: attr(placeholder); color: rgba(0,0,0,0.5); font-style: italic; }
         .dark-mode { background-color: #2c2c2c; color: #f0f0f0; }
         .dark-mode .title-bar, .dark-mode .button, .dark-mode .content-area { background-color: #2c2c2c; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
         .dark-mode .button, .dark-mode .title-display { color: #ffffff; }
         .dark-mode .button:hover { background-color: #3e3e3e; }
         .dark-mode .dropdown-menu { background-color: #3e3e3e; }
-        .dark-mode .dropdown-menu button { background-color: #3e3e3e; color: #ffffff; }
+        .dark-mode .dropdown-menu button { background-color: #3e3e3e; color: #ffffff; font-family: 'Garet-Book', sans-serif; }
         .dark-mode .dropdown-menu button:hover { background-color: #4e4e4e; }
-        .mode-toggle { font-size: 18px; cursor: pointer; margin-left: 5px; padding: 8px; border-radius: 20px; background-color: #f0f0f0; color: #333; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: all 0.3s ease; border: none; }
+        .mode-toggle { font-size: 18px; cursor: pointer; margin-left: 5px; padding: 8px; border-radius: 20px; background-color: #f0f0f0; color: #333; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: all 0.3s ease; border: none; font-family: 'Garet-Book', sans-serif; }
         .mode-toggle:hover { background-color: #e0e0e0; }
         .mode-toggle:active { box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff; }
         .dark-mode .mode-toggle { color: #ffffff; background-color: #2c2c2c; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
         .dark-mode [contenteditable=true]:empty:before { color: rgba(255, 255, 255, 0.5); }
         .ai-popup { display: none; position: absolute; background: linear-gradient(145deg, #ffffff, #f0f0f0); box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; border-radius: 15px; padding: 15px; width: 300px; z-index: 1000; box-sizing: border-box; }
-        .ai-input { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #ffffff; font-size: 14px; outline: none; transition: all 0.3s ease; box-shadow: inset 4px 4px 8px #d1d1d1, inset -4px -4px 8px #ffffff; box-sizing: border-box; }
+        .ai-input { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #ffffff; font-family: 'Garet-Book', sans-serif; font-size: 14px; outline: none; transition: all 0.3s ease; box-shadow: inset 4px 4px 8px #d1d1d1, inset -4px -4px 8px #ffffff; box-sizing: border-box; }
         .ai-input:focus { box-shadow: inset 6px 6px 10px #d1d1d1, inset -6px -6px 10px #ffffff; }
         .typing-animation { position: relative; }
         .typing-animation::after { content: '|'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); animation: blink 1s infinite; color: #4CAF50; }
@@ -79,6 +66,8 @@
         .dark-mode .ai-input { background: #2c2c2c; color: #ffffff; box-shadow: inset 4px 4px 8px #1a1a1a, inset -4px -4px 8px #3e3e3e; }
         .dark-mode .ai-input:focus { box-shadow: inset 6px 6px 10px #1a1a1a, inset -6px -6px 10px #3e3e3e; }
         @media (max-width: 600px) { .title-bar { flex-wrap: wrap; } .title-display { width: 100%; margin-bottom: 10px; } .button { font-size: 12px; padding: 6px 14px; } .mode-toggle { font-size: 16px; padding: 6px; } }
+        /* Apply Garet-Heavy to headings */
+        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 { font-family: 'Garet-Heavy', sans-serif; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -158,6 +147,13 @@
                 smartypants: true,
                 xhtml: true
             }) : '';
+            // Ensure custom font styling is applied to dynamically created content
+            if (!isEditMode) {
+                const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                headings.forEach(heading => {
+                    heading.style.fontFamily = 'Garet-Heavy, sans-serif';
+                });
+            }
             
             // Execute scripts in the content
             const scripts = contentArea.getElementsByTagName('script');
@@ -271,7 +267,7 @@
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = `<h1 style='text-align: center; color: black; font-size: 20pt;'>${title}</h1>${content}`;
             tempDiv.style.width = `${contentWidth}cm`;
-            tempDiv.style.fontFamily = 'Garet, sans-serif';
+            tempDiv.style.fontFamily = 'Garet-Book, sans-serif';
             tempDiv.style.fontSize = '11pt';
             tempDiv.style.color = 'black';
             tempDiv.style.backgroundColor = 'white';
