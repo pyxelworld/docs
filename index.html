@@ -337,15 +337,15 @@
         const params = {};
         window.location.search.substring(1).split('&').forEach(param => {
             const [key, value] = param.split('=');
-            params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+            params[decodeURIComponent(key)] = value || '';
         });
         return params;
     }
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Novo Magic Docs';
-        const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
+        const title = params.title ? decodeURIComponent(params.title.replace(/%(?![0-9A-Fa-f]{2})/g, '%25')) : 'Novo Magic Docs';
+        const content = params.content ? decodeURIComponent(params.content.replace(/%(?![0-9A-Fa-f]{2})/g, '%25')) : '';
         documentTitle.value = title;
         markdownContent = normalizeContent(content);
         isEditMode = !markdownContent.trim();
