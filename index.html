@@ -49,7 +49,7 @@
 <body>
 <div class="editor-container">
     <div class="title-bar">
-        <input type="text" class="title-display" id="documentTitle" value="Título do Documento" />
+        <input type="text" class="title-display" id="documentTitle" value="Novo Magic Docs" />
         <div>
             <button class="button" id="editButton">Edit</button>
             <button class="button" id="importButton">Importar</button>
@@ -231,7 +231,7 @@
             const pageHeight = 29.7;
             const contentWidth = pageWidth - 2 * margin;
             const contentHeight = pageHeight - 2 * margin;
-            const title = documentTitle.value || 'Título do Documento';
+            const title = documentTitle.value || 'Novo Magic Docs';
             const content = marked.parse(markdownContent);
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = `<h1 style="text-align: center; color: black; font-size: 20pt;">${title}</h1>${content}`;
@@ -278,7 +278,7 @@
 
     exportMDButton.addEventListener('click', () => {
         exportMenu.style.display = 'none';
-        const title = documentTitle.value || 'Título do Documento';
+        const title = documentTitle.value || 'Novo Magic Docs';
         const fullContent = `**${title}**\n\n${markdownContent}`;
         const blob = new Blob([fullContent], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
@@ -344,7 +344,7 @@
 
     function initializeContentFromURL() {
         const params = getQueryParams();
-        const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Título do Documento';
+        const title = params.title ? decodeURIComponent(params.title.replace(/%25/g, '%')) : 'Novo Magic Docs';
         const content = params.content ? decodeURIComponent(params.content.replace(/%25/g, '%')) : '';
         documentTitle.value = title;
         markdownContent = normalizeContent(content);
