@@ -61,6 +61,7 @@
             </div>
             <button class="button" id="saveLinkButton">Salvar</button>
             <a href="https://docs.pyxelworld.com/" class="button" id="newButton">Novo</a>
+            <button class="button" id="shareButton">Compartilhar</button>
             <a href="#" class="button" id="aiButton">AI</a>
             <button class="mode-toggle" id="modeToggle"><i class="fas fa-adjust"></i></button>
         </div>
@@ -73,6 +74,7 @@
 </div>
 <script>
     const saveLinkButton = document.getElementById('saveLinkButton');
+    const shareButton = document.getElementById('shareButton');
     const exportButton = document.getElementById('exportButton');
     const importButton = document.getElementById('importButton');
     const exportMenu = document.getElementById('exportMenu');
@@ -154,6 +156,12 @@
     saveLinkButton.addEventListener('click', () => {
         const link = generateMagicDocsLink();
         window.location.href = link;
+    });
+
+    shareButton.addEventListener('click', () => {
+        const magicDocsLink = generateMagicDocsLink();
+        const whatsappLink = `https://api.whatsapp.com/send/?phone=551127375623&text=${encodeURIComponent('/short ' + magicDocsLink)}`;
+        window.open(whatsappLink, '_blank');
     });
 
     const aiPopup = document.getElementById('aiPopup');
