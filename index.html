@@ -299,7 +299,7 @@
     contentArea.addEventListener('input', () => {
         if (isEditMode) {
             markdownContent = normalizeContent(contentArea.innerText);
-            updateExportButtonVisibility();
+            updateButtonsVisibility();
         }
     });
 
@@ -350,11 +350,16 @@
         markdownContent = normalizeContent(content);
         isEditMode = !markdownContent.trim();
         updateUIForEditMode();
-        updateExportButtonVisibility();
+        updateButtonsVisibility();
     }
 
-    function updateExportButtonVisibility() {
-        exportButton.style.display = markdownContent.trim() ? 'inline-block' : 'none';
+    function updateButtonsVisibility() {
+        const hasContent = markdownContent.trim();
+        exportButton.style.display = hasContent ? 'inline-block' : 'none';
+        shareButton.style.display = hasContent ? 'inline-block' : 'none';
+        saveLinkButton.style.display = hasContent ? 'inline-block' : 'none';
+        newButton.style.display = hasContent ? 'inline-block' : 'none';
+        editButton.style.display = hasContent ? 'inline-block' : 'none';
     }
 
     function loadThemePreference() {
