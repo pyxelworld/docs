@@ -64,7 +64,6 @@
             <button class="button" id="shareButton">Compartilhar</button>
             <a href="#" class="button" id="aiButton">AI</a>
             <button class="mode-toggle" id="modeToggle"><i class="fas fa-adjust"></i></button>
-            <button class="mode-toggle" id="fullscreenButton"><i class="fas fa-expand"></i></button>
         </div>
     </div>
     <div class="content-area" contenteditable="false" placeholder="Escreva aqui..." id="contentArea"></div>
@@ -85,7 +84,6 @@
     const contentArea = document.getElementById('contentArea');
     const documentTitle = document.getElementById('documentTitle');
     const modeToggle = document.getElementById('modeToggle');
-    const fullscreenButton = document.getElementById('fullscreenButton');
     const fileInput = document.getElementById('fileInput');
     const newButton = document.getElementById('newButton');
     const aiButton = document.getElementById('aiButton');
@@ -301,7 +299,7 @@
     contentArea.addEventListener('input', () => {
         if (isEditMode) {
             markdownContent = normalizeContent(contentArea.innerText);
-            updateButtonsVisibility();
+            updateExportButtonVisibility();
         }
     });
 
@@ -352,17 +350,11 @@
         markdownContent = normalizeContent(content);
         isEditMode = !markdownContent.trim();
         updateUIForEditMode();
-        updateButtonsVisibility();
+        updateExportButtonVisibility();
     }
 
-    function updateButtonsVisibility() {
-        const hasContent = markdownContent.trim();
-        exportButton.style.display = hasContent ? 'inline-block' : 'none';
-        shareButton.style.display = hasContent ? 'inline-block' : 'none';
-        saveLinkButton.style.display = hasContent ? 'inline-block' : 'none';
-        fullscreenButton.style.display = hasContent ? 'inline-block' : 'none';
-        newButton.style.display = hasContent ? 'inline-block' : 'none';
-        editButton.style.display = hasContent ? 'inline-block' : 'none';
+    function updateExportButtonVisibility() {
+        exportButton.style.display = markdownContent.trim() ? 'inline-block' : 'none';
     }
 
     function loadThemePreference() {
@@ -372,28 +364,6 @@
                 isDarkMode = true;
                 document.body.classList.add('dark-mode');
             }
-        }
-    }
-
-    fullscreenButton.addEventListener('click', () => {
-        const link = generateMagicDocsLink();
-        window.location.href = `${link}&full`;
-    });
-
-    // Check if we're in full screen mode
-    if (window.location.search.includes('full')) {
-        document.querySelector('.title-bar').style.display = 'none';
-        document.body.style.background = '#ffffff';
-        document.querySelector('.editor-container').style.padding = '0';
-        document.querySelector('.content-area').style.boxShadow = 'none';
-        document.querySelector('.content-area').style.background = '#ffffff';
-        document.querySelector('.content-area').style.borderRadius = '0';
-        document.body.classList.remove('dark-mode');
-        isDarkMode = false;
-        isEditMode = false;
-        updateUIForEditMode();
-        if (isLocalStorageAvailable()) {
-            localStorage.setItem('darkMode', 'disabled');
         }
     }
 
