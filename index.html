@@ -15,12 +15,7 @@
             font-weight: normal;
             font-style: normal;
         }
-        @font-face {
-            font-family: 'Garet-Heavy';
-            src: url('Garet-Heavy.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-        }
+
         body, html { margin: 0; padding: 0; font-family: 'Garet-Book', sans-serif; height: 100%; background-color: #f0f0f0; transition: background-color 0.3s, color 0.3s; }
         .editor-container { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 15px; box-sizing: border-box; }
         .title-bar { background-color: #f0f0f0; padding: 10px 15px 10px 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 20px; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; margin-bottom: 10px; transition: background-color 0.3s, box-shadow 0.3s; }
@@ -34,7 +29,7 @@
             background: none; 
             outline: none; 
             transition: color 0.3s; 
-            font-family: 'Garet-Heavy', sans-serif; 
+            font-family: 'Garet-Book', sans-serif; 
         }
         .button { padding: 5px 12px; margin-left: 3px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.3s ease; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; font-size: 12px; text-decoration: none; display: inline-block; position: relative; font-family: 'Garet-Book', sans-serif; }
         .button:hover { background-color: #e0e0e0; }
@@ -66,8 +61,19 @@
         .dark-mode .ai-input { background: #2c2c2c; color: #ffffff; box-shadow: inset 4px 4px 8px #1a1a1a, inset -4px -4px 8px #3e3e3e; }
         .dark-mode .ai-input:focus { box-shadow: inset 6px 6px 10px #1a1a1a, inset -6px -6px 10px #3e3e3e; }
         @media (max-width: 600px) { .title-bar { flex-wrap: wrap; } .title-display { width: 100%; margin-bottom: 10px; } .button { font-size: 12px; padding: 6px 14px; } .mode-toggle { font-size: 16px; padding: 6px; } }
-        /* Apply Garet-Heavy to headings */
-        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 { font-family: 'Garet-Heavy', sans-serif; font-weight: normal; }
+        /* Apply bold Garet-Book to headings */
+        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 { font-family: 'Garet-Book', sans-serif; font-weight: bold; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; backdrop-filter: blur(5px); }
+        .warning-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f0f0f0; padding: 25px; border-radius: 20px; z-index: 1001; width: 400px; text-align: center; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; }
+        .warning-popup .button-container { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .warning-popup .popup-button { padding: 10px 20px; border: none; border-radius: 15px; cursor: pointer; font-family: 'Garet-Book', sans-serif; background: #f0f0f0; box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff; transition: all 0.3s ease; }
+        .warning-popup .popup-button:hover { background: #e8e8e8; }
+        .warning-popup .popup-button:active { box-shadow: inset 7px 7px 15px #d1d1d1, inset -7px -7px 15px #ffffff; }
+        .dark-mode .warning-popup { background: #2c2c2c; color: #ffffff; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
+        .dark-mode .warning-popup .popup-button { background: #2c2c2c; color: #ffffff; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
+        .dark-mode .warning-popup .popup-button:hover { background: #3e3e3e; }
+        .dark-mode .warning-popup .popup-button:active { box-shadow: inset 7px 7px 15px #1a1a1a, inset -7px -7px 15px #3e3e3e; }
+        .dark-mode .dropdown-menu { background-color: #2c2c2c; box-shadow: 7px 7px 15px #1a1a1a, -7px -7px 15px #3e3e3e; }
     </style>
 </head>
 <body>
@@ -94,6 +100,18 @@
     <input type='file' id='fileInput' style='display:none;' accept='.md'/>
     <div class='ai-popup' id='aiPopup'>
         <input type='text' class='ai-input typing-animation' id='aiInput' placeholder='Pergunte ao Magic' />
+    </div>
+    <div class='ai-popup' id='sharePopup'>
+        <input type='text' class='ai-input' id='shareInput' readonly />
+    </div>
+    <div class='overlay' id='overlay'></div>
+    <div class='warning-popup' id='warningPopup'>
+        <h1>Aviso</h1>
+        <p>CSS e JS não serão exportados no PDF</p>
+        <div class='button-container'>
+            <button class='popup-button' id='closeWarning'>Fechar</button>
+            <button class='popup-button' id='exportAnyway'>Exportar mesmo assim</button>
+        </div>
     </div>
 </div>
 <script>
@@ -151,7 +169,8 @@
             if (!isEditMode) {
                 const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
                 headings.forEach(heading => {
-                    heading.style.fontFamily = 'Garet-Heavy, sans-serif';
+                    heading.style.fontFamily = 'Garet-Book, sans-serif';
+                    heading.style.fontWeight = 'bold';
                 });
             }
             
@@ -189,10 +208,53 @@
         window.location.href = link;
     });
 
-    shareButton.addEventListener('click', () => {
+    const sharePopup = document.getElementById('sharePopup');
+    const shareInput = document.getElementById('shareInput');
+
+    shareButton.addEventListener('click', async () => {
         const magicDocsLink = generateMagicDocsLink();
-        const whatsappLink = `https://api.whatsapp.com/send/?phone=551127375623&text=${encodeURIComponent('/short ' + magicDocsLink)}`;
-        window.open(whatsappLink, '_blank');
+        shareButton.textContent = 'Encurtando...';
+        
+        try {
+            const response = await fetch(`https://da.gd/s?url=${encodeURIComponent(magicDocsLink)}`);
+            const shortUrl = await response.text();
+            
+            const rect = shareButton.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const popupWidth = 300;
+
+            let leftPos = rect.left + window.scrollX;
+            if (leftPos + popupWidth > viewportWidth) {
+                leftPos = rect.right - popupWidth + window.scrollX;
+            }
+
+            sharePopup.style.top = `${rect.bottom + window.scrollY + 10}px`;
+            sharePopup.style.left = `${leftPos}px`;
+            sharePopup.style.display = 'block';
+            shareInput.value = shortUrl.trim();
+            shareInput.select();
+        } catch (error) {
+            console.error('Error shortening URL:', error);
+            alert('Erro ao encurtar o link');
+        } finally {
+            shareButton.textContent = 'Compartilhar';
+        }
+    });
+
+    shareInput.addEventListener('click', () => {
+        shareInput.select();
+        document.execCommand('copy');
+        const originalText = shareButton.textContent;
+        shareButton.textContent = 'Copiado!';
+        setTimeout(() => {
+            shareButton.textContent = originalText;
+        }, 1000);
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!sharePopup.contains(event.target) && event.target !== shareButton) {
+            sharePopup.style.display = 'none';
+        }
     });
 
     const aiPopup = document.getElementById('aiPopup');
@@ -251,8 +313,38 @@
         }
     });
 
-    exportPDFButton.addEventListener('click', async () => {
+    function hasScriptsOrStyles(content) {
+        return /<script|<style|style=["']|onclick/i.test(content);
+    }
+
+    exportPDFButton.addEventListener('click', () => {
         exportMenu.style.display = 'none';
+        const content = marked.parse(markdownContent);
+        
+        if (hasScriptsOrStyles(content)) {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('warningPopup').style.display = 'block';
+        } else {
+            exportPDF();
+        }
+    });
+
+    document.getElementById('closeWarning').addEventListener('click', () => {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('warningPopup').style.display = 'none';
+    });
+
+    document.getElementById('exportAnyway').addEventListener('click', () => {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('warningPopup').style.display = 'none';
+        exportPDF();
+    });
+
+    function hasScriptsOrStyles(content) {
+        return /<script|<style|style=["']|onclick/i.test(content);
+    }
+
+    async function exportPDF() {
         try {
             exportButton.textContent = 'Baixando PDF...';
             const { jsPDF } = window.jspdf;
@@ -294,10 +386,7 @@
             const blobUrl = URL.createObjectURL(pdfBlob);
             window.location.href = blobUrl;
             
-            exportButton.textContent = 'Exportado!';
-            setTimeout(() => {
-                updateExportButtonVisibility();
-            }, 3000);
+            exportButton.textContent = 'Exportar';
         } catch (error) {
             console.error('Erro ao exportar PDF:', error);
             exportButton.textContent = 'Erro!';
@@ -305,7 +394,7 @@
                 updateExportButtonVisibility();
             }, 3000);
         }
-    });
+    }
 
     exportMDButton.addEventListener('click', () => {
         exportMenu.style.display = 'none';
@@ -352,7 +441,11 @@
                     }
                     isEditMode = false;
                     updateUIForEditMode();
-                    updateExportButtonVisibility();
+                    updateButtonsVisibility();
+                    
+                    // Automatically save after importing
+                    const link = generateMagicDocsLink();
+                    window.location.href = link;
                 } else {
                     importButton.textContent = 'Documento vazio';
                     setTimeout(() => {
