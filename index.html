@@ -154,7 +154,7 @@
         editButton.textContent = isEditMode ? 'View' : 'Edit';
         contentArea.contentEditable = isEditMode;
         if (isEditMode) {
-            contentArea.innerText = markdownContent.split('\n').join('\n\n');
+            contentArea.innerText = markdownContent;
         } else {
             const processedContent = markdownContent.split('\n').map(line => {
                 // Preserve single empty lines as blank lines
