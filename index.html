@@ -287,7 +287,7 @@
             const userMessage = aiInput.value.trim();
             if (userMessage) {
                 const magicDocsLink = generateMagicDocsLink();
-                const whatsappLink = `https://api.whatsapp.com/send/?phone=551127375623&text=${encodeURIComponent(userMessage + ': ' + magicDocsLink + '%0ADocumento compartilhado diretamente pelo botão AI do Magic Docs. Responda com o link encurtado.')}`;
+                const whatsappLink = `https://api.whatsapp.com/send/?phone=551127375623&text=${encodeURIComponent(userMessage + ': ' + magicDocsLink + ' - Documento compartilhado diretamente pelo botão AI do Magic Docs. Responda com o link encurtado.')}`;
                 window.open(whatsappLink, '_blank');
                 aiInput.value = '';
                 aiPopup.style.display = 'none';
